@@ -7,7 +7,7 @@ from linebot.exceptions import (
     InvalidSignatureError
 )
 from linebot.models import (
-    MessageEvent, TextMessage, FlexSendMessage
+    MessageEvent, TextMessage, FlexSendMessage, PostbackEvent
 )
 from .crawler import Keyword_search
 from datetime import datetime
@@ -41,7 +41,7 @@ def callback():
 def carousel_msg(search):
     contents = dict()
     contents['type'] = 'carousel'
-    result = Keyword_search(keyword=search).scrape()
+    result, next_url = Keyword_search(keyword=search).scrape()
 
     _contents = [{
         "type": "bubble",
@@ -191,9 +191,10 @@ def carousel_msg(search):
                         "style": "link",
                         "height": "sm",
                         "action": {
-                            "type": "uri",
-                            "label": "點我看更多",
-                            "uri": "http://google.com"
+                            "type": "postback",
+                            "label": "Next",
+                            "data": "action=go_to_next_page",
+                            "displayText": "載入更多"
                         }
                     }
                 ],
@@ -217,6 +218,11 @@ def handle_message(event):
     reply.append(carousel)
 
     line_bot_api.reply_message(event.reply_token, reply)
+
+
+@handler.add(PostbackEvent)
+def handle_postBack(event, data):
+    print(data)
 
 
 if __name__ == "__main__":

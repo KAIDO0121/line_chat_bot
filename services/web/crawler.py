@@ -17,7 +17,6 @@ from user_agent import generate_user_agent
 import re
 import multiprocessing as mp
 from multiprocessing import Manager
-import time
 
 
 def make_tiny(url):
@@ -40,7 +39,7 @@ class Keyword_search:
             "https://ifoodie.tw/explore/list/" + self.keyword, headers=headers)
 
         soup = BeautifulSoup(response.text, "lxml")
-        cards = soup.select("div.jsx-3440511973.restaurant-item", limit=10)
+        cards = soup.select("div.jsx-3440511973.restaurant-item")
 
         manager = Manager()
         result = []
@@ -121,4 +120,7 @@ class Keyword_search:
 
             result.append(dict(content))
 
-        return result
+        next_url = card.find("li", {"class": "next"}).find(
+            "a", recursive=False)["href"]
+
+        return result, next_url
