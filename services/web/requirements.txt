@@ -6,3 +6,4 @@ line-bot-sdk
 datetime 
 lxml
 cchardet
+gunicorn
