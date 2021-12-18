@@ -29,7 +29,7 @@ def make_tiny(url):
 class Keyword_search:
     _next_page_url = ""
 
-    _cur_page = 0
+    _cur_page = 1
 
     @property
     def next_page_url(self):
@@ -146,10 +146,11 @@ class Keyword_search:
         # 使用假header
         ua = generate_user_agent(os=('mac', 'linux'))
         headers = {'User-Agent': ua}
-
-        response = requests.get(
-            "https://ifoodie.tw/explore/list/" + self.keyword, headers=headers)
-
+        try:
+            response = requests.get(
+                "https://ifoodie.tw/explore/list/" + self.keyword, headers=headers)
+        except Exception:
+            return Exception, '', False
         soup = BeautifulSoup(response.text, "lxml")
         cards = soup.select("div.restaurant-item", limit=11)
 
@@ -232,9 +233,10 @@ class Keyword_search:
 
             result.append(dict(content))
 
+        page_url = ""
         search_bar = soup.select("div.search-condition")
+        page = search_bar[0].find("li", {"class": "next"})
+        if page:
+            page_url = f'https://ifoodie.tw{page.find("a", recursive=False)["href"][:-1]}'
 
-        page_url = search_bar[0].find("li", {"class": "next"}).find(
-            "a", recursive=False)["href"][:-1]
-
-        return result, f'https://ifoodie.tw{page_url}'
+        return result, page_url, True

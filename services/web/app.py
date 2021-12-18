@@ -10,7 +10,6 @@ from linebot.models import (
     MessageEvent, TextMessage, FlexSendMessage, PostbackEvent
 )
 from .crawler import Keyword_search
-from datetime import datetime
 
 app = Flask(__name__)
 
@@ -42,8 +41,15 @@ def carousel_msg(search):
     contents = dict()
     contents['type'] = 'carousel'
     keyword_search = Keyword_search(keyword=search)
-    result, next_url = keyword_search.scrape()
-    keyword_search.next_page_url = next_url
+    result, next_url, status = keyword_search.scrape()
+
+    if not status:
+        print(result)
+        message = TextMessage(message=result)
+        return message
+
+    if next_url:
+        keyword_search.next_page_url = next_url
 
     _contents = [{
         "type": "bubble",
@@ -161,55 +167,56 @@ def carousel_msg(search):
         }
     } for item in result]
 
-    _contents.append(
-        {
-            "type": "bubble",
-            "hero": {
-                "type": "image",
-                "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/01_1_cafe.png",
-                "size": "full",
-                "aspectRatio": "20:13",
-                "aspectMode": "cover"
-            },
-            "body": {
-                "type": "box",
-                "layout": "vertical",
-                "contents": [
-                    {
-                        "type": "text",
-                        "text": "找不到滿意的店家嗎？",
-                        "weight": "bold",
-                        "size": "xl"
-                    },
-                    {
-                        "type": "text",
-                        "text": "我們還有更多優質的選擇供您參考",
-                        "weight": "bold",
-                        "size": "xl"
-                    }
-                ]
-            },
-            "footer": {
-                "type": "box",
-                "layout": "vertical",
-                "spacing": "sm",
-                "contents": [
-                    {
-                        "type": "button",
-                        "style": "link",
-                        "height": "sm",
-                        "action": {
-                            "type": "postback",
-                            "label": "載入更多",
-                            "data": "action=go_to_next_page",
-                            "displayText": "正在載入..."
+    if len(result) > 10:
+        _contents.append(
+            {
+                "type": "bubble",
+                "hero": {
+                    "type": "image",
+                    "url": "https://i.imgur.com/aW48F8v.jpg",
+                    "size": "full",
+                    "aspectRatio": "20:13",
+                    "aspectMode": "cover"
+                },
+                "body": {
+                    "type": "box",
+                    "layout": "vertical",
+                    "contents": [
+                        {
+                            "type": "text",
+                            "text": "找不到滿意的店家嗎？",
+                            "weight": "bold",
+                            "size": "xl"
+                        },
+                        {
+                            "type": "text",
+                            "text": "我們還有更多優質的選擇供您參考",
+                            "weight": "bold",
+                            "size": "xl"
                         }
-                    }
-                ],
-                "flex": 0
+                    ]
+                },
+                "footer": {
+                    "type": "box",
+                    "layout": "vertical",
+                    "spacing": "sm",
+                    "contents": [
+                        {
+                            "type": "button",
+                            "style": "link",
+                            "height": "sm",
+                            "action": {
+                                "type": "postback",
+                                "label": "載入更多",
+                                "data": "action=go_to_next_page",
+                                "displayText": "正在載入..."
+                            }
+                        }
+                    ],
+                    "flex": 0
+                }
             }
-        }
-    )
+        )
 
     contents['contents'] = _contents
 
@@ -220,12 +227,12 @@ def carousel_msg(search):
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
+    if event.message.text[:2] == "搜尋":
+        carousel = carousel_msg(event.message.text[2:])
+        reply = []
+        reply.append(carousel)
 
-    carousel = carousel_msg(event.message.text)
-    reply = []
-    reply.append(carousel)
-
-    line_bot_api.reply_message(event.reply_token, reply)
+        line_bot_api.reply_message(event.reply_token, reply)
 
 
 @handler.add(PostbackEvent)
