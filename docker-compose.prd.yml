@@ -2,18 +2,15 @@ version: "3.7"
 
 services:
   web:
-    command: gunicorn --bind 0.0.0.0:3000 app:app
     expose:
       - 3000
     env_file:
       - ./.env.prod
     build:
       context: ./services/web
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile.prd
     volumes:
       - ./services/web/:/usr/src/app/
-    ports:
-      - 3000:3000
   nginx:
     build:
       context: ./services/nginx
