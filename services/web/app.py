@@ -1,4 +1,4 @@
-from .crawler import Keyword_search
+from crawler import Keyword_search
 from pprint import pprint
 from flask import Flask, request, abort
 
