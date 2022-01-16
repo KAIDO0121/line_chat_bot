@@ -1,4 +1,5 @@
-from crawler import Keyword_search
+from .crawler import Keyword_search
+from pprint import pprint
 from flask import Flask, request, abort
 
 from linebot import (
@@ -45,12 +46,14 @@ def carousel_msg(search):
     result, next_url, status = keyword_search.scrape()
 
     if not status:
-        print(result)
         message = TextMessage(message=result)
         return message
 
+    pprint(next_url)
     if next_url:
+
         keyword_search.next_page_url = next_url
+        pprint(keyword_search.next_page_url)
 
     _contents = [{
         "type": "bubble",
@@ -236,11 +239,12 @@ def handle_message(event):
         line_bot_api.reply_message(event.reply_token, reply)
 
 
-@handler.add(JoinEvent, message=TextMessage)
-def handle_message(event):
-
+@handler.add(JoinEvent)
+def handle_join(event):
     line_bot_api.reply_message(
-        event.reply_token, "歡迎使用今晚點什麼，輸入『搜尋 關鍵字』即可幫你找到精選的聚會地點，例如:搜尋台北信義區酒吧")
+        event.reply_token,
+        TextMessage(text="歡迎使用今晚點什麼，輸入『搜尋 關鍵字』即可幫你找到精選的聚會地點，例如:搜尋台北信義區酒吧")
+    )
 
 
 @handler.add(PostbackEvent)
