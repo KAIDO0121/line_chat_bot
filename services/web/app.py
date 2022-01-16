@@ -8,7 +8,7 @@ from linebot.exceptions import (
     InvalidSignatureError
 )
 from linebot.models import (
-    MessageEvent, TextMessage, FlexSendMessage, PostbackEvent
+    MessageEvent, TextMessage, FlexSendMessage, PostbackEvent, JoinEvent
 )
 
 app = Flask(__name__)
@@ -234,6 +234,13 @@ def handle_message(event):
         reply.append(carousel)
 
         line_bot_api.reply_message(event.reply_token, reply)
+
+
+@handler.add(JoinEvent, message=TextMessage)
+def handle_message(event):
+
+    line_bot_api.reply_message(
+        event.reply_token, "歡迎使用今晚點什麼，輸入『搜尋 關鍵字』即可幫你找到精選的聚會地點，例如:搜尋台北信義區酒吧")
 
 
 @handler.add(PostbackEvent)
